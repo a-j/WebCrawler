@@ -6,8 +6,6 @@ import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
-import java.time.LocalDate;
-
 public class BasicController {
     public static void main(String[] args) throws Exception {
         String crawlStorageFolder = "data"; // tmp folder for use during crawling
