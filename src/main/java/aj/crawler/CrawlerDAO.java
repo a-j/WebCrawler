@@ -1,21 +1,35 @@
 package aj.crawler;
 
 import org.neo4j.driver.v1.*;
-import org.neo4j.driver.v1.exceptions.ClientException;
 
-import static org.neo4j.driver.v1.Values.parameters;
-
-import java.util.*;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class CrawlerDAO {
 
     public static void main(String...args) {
+        Map<String, Set<String>> map = new HashMap<>();
+        Set<String> links = new HashSet<>();
+        links.add("uhc.com");
+        links.add("optumrx.com");
+        links.add("optum360.com");
+        map.put("optum.com", links);
 
+        links = new HashSet<>();
+        links.add("optum.com");
+        links.add("myuhc.com");
+        links.add("optum360.com");
+        map.put("uhc.com", links);
+        
+        saveToDB(map);
+    }
+
+    public static void saveToDB(Map<String, Set<String>> map) {
         Config noSSL = Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig();
         Driver driver = GraphDatabase.driver("bolt://localhost",AuthTokens.basic("neo4j","Anand123"),noSSL); // <password>
+
         try (Session session = driver.session()) {
 
             // Create unique constraint to prevent duplicate domains
@@ -24,27 +38,14 @@ public class CrawlerDAO {
             Set<String> processedInput = new HashSet<>();
             Set<String> processedLinks = new HashSet<>();
 
-            Map<String, Set<String>> map = new HashMap<>();
-            Set<String> links = new HashSet<>();
-            links.add("uhc.com");
-            links.add("optumrx.com");
-            links.add("optum360.com");
-            map.put("optum.com", links);
-
-            links = new HashSet<>();
-            links.add("optum.com");
-            links.add("myuhc.com");
-            links.add("optum360.com");
-            map.put("uhc.com", links);
-
             for (String inputDomain : map.keySet()) {
                 StringBuilder query = new StringBuilder();
-                if (!processedInput.contains(inputDomain)) {    // Node not inserted
+                if (!processedInput.contains(inputDomain)) {
                     if (processedLinks.contains(inputDomain)) {  // Node inserted already, just add label
                         query.append("MATCH (i:SITE{name:\"" + inputDomain + "\"}) SET i :INPUT").append(System.lineSeparator());
 
                         processedInput.add(inputDomain);
-                    } else {
+                    } else {    // Node not inserted
                         query.append("CREATE (i:SITE:INPUT{name:\"" + inputDomain + "\"})").append(System.lineSeparator());
 
                         processedInput.add(inputDomain);
@@ -69,50 +70,6 @@ public class CrawlerDAO {
                 System.out.println("Query: \n" + query.toString());
                 session.run(query.toString()).consume();
             }
-
-
-//            for (String inputDomain : map.keySet()) {
-//                try {
-//                    System.out.println("Inserting " + inputDomain);
-//                    session.run("CREATE (:SITE:INPUT{name:\"" + inputDomain + "\"})").consume();
-//                } catch (ClientException ce) {
-//                    // ignore unique constraint violation
-//                    System.out.println("Exception Occurred: " + ce.getMessage());
-//                }
-//
-//                for (String link : map.get(inputDomain)) {
-//                    try {
-//                        System.out.println("Inserting " + link);
-//                        session.run("CREATE (:SITE{name:\"" + link + "\"})").consume();
-//                    } catch (ClientException ce) {
-//                        // ignore unique constraint violation
-//                        System.out.println("Exception Occurred: " + ce.getMessage());
-//                    }
-//                }
-//            }
-
-//            List data =
-//                    asList(asList("Jim","Mike"),asList("Jim","Billy"),asList("Anna","Jim"),
-//                            asList("Anna","Mike"),asList("Sally","Anna"),asList("Joe","Sally"),
-//                            asList("Joe","Bob"),asList("Bob","Sally"));
-//
-//            String insertQuery = "UNWIND {pairs} as pair " +
-//                    "MERGE (p1:Person {name:pair[0]}) " +
-//                    "MERGE (p2:Person {name:pair[1]}) " +
-//                    "MERGE (p1)-[:KNOWS]-(p2);";
-//
-//            session.run(insertQuery,singletonMap("pairs",data)).consume();
-
-//            StatementResult result;
-//
-//            String foafQuery =
-//                    " MATCH (person:Person)-[:KNOWS]-(friend)-[:KNOWS]-(foaf) "+
-//                            " WHERE person.name = {name} " +
-//                            "   AND NOT (person)-[:KNOWS]-(foaf) " +
-//                            " RETURN foaf.name AS name ";
-//            result = session.run(foafQuery, parameters("name","Joe"));
-//            while (result.hasNext()) System.out.println(result.next().get("name"));
-
         }
     }
 }
