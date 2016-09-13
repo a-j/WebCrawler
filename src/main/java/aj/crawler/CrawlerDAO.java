@@ -2,6 +2,9 @@ package aj.crawler;
 
 import org.neo4j.driver.v1.*;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -12,18 +15,40 @@ public class CrawlerDAO {
     public static void main(String...args) {
         Map<String, Set<String>> map = new HashMap<>();
         Set<String> links = new HashSet<>();
-        links.add("uhc.com");
-        links.add("optumrx.com");
-        links.add("optum360.com");
-        map.put("optum.com", links);
+//        links.add("uhc.com");
+//        links.add("optumrx.com");
+//        links.add("optum360.com");
+//        map.put("optum.com", links);
+//
+//        links = new HashSet<>();
+//        links.add("optum.com");
+//        links.add("myuhc.com");
+//        links.add("optum360.com");
+//        map.put("uhc.com", links);
+        map.put("uhcretiree.com", getData("uhcretiree.com", "data/uhcretiree.txt"));
+        map.put("pharmacysaver.com", getData("pharmacysaver.com", "data/pharmacysaver.txt"));
+        map.put("unitedpharmacysaver.com", getData("unitedpharmacysaver.com", "data/unitedpharmacysaver.txt"));
+        map.put("uhcmedicaresolutions.com", getData("uhcmedicaresolutions.com", "data/uhcmedicaresolutions.txt"));
+        map.put("aarpmedicareplans.com", getData("aarpmedicareplans.com", "data/aarpmedicareplans.txt"));
 
-        links = new HashSet<>();
-        links.add("optum.com");
-        links.add("myuhc.com");
-        links.add("optum360.com");
-        map.put("uhc.com", links);
-        
+        System.out.println(map);
         saveToDB(map);
+    }
+
+    public static Set<String> getData(String site, String fileName) {
+        Set<String> links = new HashSet<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(fileName));
+            String str;
+            while ( (str = reader.readLine()) != null ) {
+                links.add(str);
+            }
+            reader.close();
+        } catch (IOException ioe) {
+            System.out.println("IOException Occurred: " + ioe.getMessage());
+            ioe.printStackTrace();
+        }
+        return links;
     }
 
     public static void saveToDB(Map<String, Set<String>> map) {

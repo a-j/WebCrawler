@@ -21,7 +21,7 @@ public class BasicController {
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
-        controller.addSeed("http://www.optum.com");
+        controller.addSeed("http://www.unitedpharmacysaver.com");
 
         final long startTime = System.currentTimeMillis();
         controller.startNonBlocking(BasicCrawler.class, numberOfCrawlers);
