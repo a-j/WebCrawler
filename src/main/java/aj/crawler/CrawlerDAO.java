@@ -71,7 +71,7 @@ public class CrawlerDAO {
 
                         processedInput.add(inputDomain);
                     } else {    // Node not inserted
-                        query.append("CREATE (i:SITE:INPUT{name:\"" + inputDomain + "\"})").append(System.lineSeparator());
+                        query.append("CREATE (i:SITE:INPUT{name:\"" + inputDomain + "\", visits:\"" + getRandomNumber(1000) + "\"})").append(System.lineSeparator());
 
                         processedInput.add(inputDomain);
                         processedLinks.add(inputDomain);
@@ -81,14 +81,14 @@ public class CrawlerDAO {
                 int i = 0;
                 for (String link : map.get(inputDomain)) {
                     if (!processedLinks.contains(link)) {   // Node not inserted - Create node & relationship
-                        query.append("CREATE (o" + ++i +":SITE{name:\"" + link + "\"})").append(System.lineSeparator());
-                        query.append("CREATE (i)-[:LINKS_TO]->(o"+ i + ")").append(System.lineSeparator());
+                        query.append("CREATE (o" + ++i +":SITE{name:\"" + link + "\", visits:\"" + getRandomNumber(1000) + "\"})").append(System.lineSeparator());
+                        query.append("CREATE (i)-[:LINKS_TO{count:\"" + getRandomNumber(100) + "\"}]->(o"+ i + ")").append(System.lineSeparator());
                         processedLinks.add(link);
                     } else {    // Node already inserted - Create only relationship
                         query.append("WITH i").append(System.lineSeparator());
                         query.append("MATCH (i1:INPUT), (i2:SITE) ");
                         query.append("WHERE i1.name=\"" + inputDomain + "\" AND i2.name=\"" + link + "\" ");
-                        query.append("CREATE (i1)-[:LINKS_TO]->(i2)");
+                        query.append("CREATE (i1)-[:LINKS_TO{count:\"" + getRandomNumber(100) + "\"}]->(i2)");
                         query.append(System.lineSeparator());
                     }
                 }
@@ -96,5 +96,9 @@ public class CrawlerDAO {
                 session.run(query.toString()).consume();
             }
         }
+    }
+
+    public static int getRandomNumber(int limit) {
+        return (int) Math.ceil(Math.random() * limit);
     }
 }
