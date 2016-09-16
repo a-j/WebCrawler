@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -21,6 +23,9 @@ public class BasicCrawler extends WebCrawler {
     private static final Pattern FILTERS = Pattern.compile(".*(\\.(css|js|gif|jpg|jpeg|png|bmp|ico))$");
     private Set<String> internalLinks = new HashSet<>();
     private Set<String> externalLinks = new HashSet<>();
+
+    private final List<String> SOCIAL_SITES = Arrays.asList("google.com", "youtube.com", "facebook.com", "twitter.com", "linkedin.com");
+    private final List<String> PRODUCT_SITES = Arrays.asList("adobe.com", "microsoft.com", "doubleclick.net", "aboutads.info", "googletagmanager.com", "opera.com", "mozilla.org");
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
@@ -52,8 +57,20 @@ public class BasicCrawler extends WebCrawler {
             if (url.getDomain().equals(pageUrl.getDomain())) {
                 internalLinks.add(url.getDomain());
             } else {
-                externalLinks.add(url.getDomain());
+                externalLinks.add(getCategory(url.getDomain()));
             }
+        }
+    }
+
+    private String getCategory(String url) {
+        if (url.endsWith(".gov") || url.endsWith(".us")) {
+            return "GOV SITES";
+        } else if (SOCIAL_SITES.contains(url)) {
+            return "SOCIAL SITES";
+        } else if (PRODUCT_SITES.contains(url)) {
+            return "PRODUCT SITES";
+        } else {
+            return url;
         }
     }
 
